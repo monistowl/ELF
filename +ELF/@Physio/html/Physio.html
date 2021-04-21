@@ -1,0 +1,1379 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Physio</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-07-05"><meta name="DC.source" content="Physio.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">ASDF</a></li><li><a href="#3">MAIN PROPERTIES</a></li><li><a href="#4">TRANSIENT PROPERTIES</a></li><li><a href="#5">DEPENDENT PROPERTIES</a></li><li><a href="#6">PUBLIC METHODS</a></li><li><a href="#7">CONSTRUCTOR</a></li><li><a href="#8">PREPROC</a></li><li><a href="#10">GETTERS AND SETTERS</a></li><li><a href="#12">STATIC METHODS</a></li><li><a href="#14">GLOSSARY</a></li></ul></div><h2 id="1">ASDF</h2><pre class="codeinput"><span class="keyword">classdef</span> Physio &lt; ELF.ELF_HandleObj
+</pre><pre class="codeinput"><span class="comment">%Physio: Physiological data and processing routines</span>
+<span class="comment">% Channel data from mindware files and associated cleaning code</span>
+<span class="comment">%  (e.g. de-noising ECG, calculating HRV)</span>
+<span class="comment">% Can be used standalone or as part of a parent Task (to combine/batch)</span>
+<span class="comment">%See also: Task, Event, Behav</span>
+</pre><h2 id="3">MAIN PROPERTIES</h2><pre class="codeinput">    properties
+    <span class="comment">%These are SAVED whenever the object is saved</span>
+    <span class="comment">%Inherited from ELF_HandleObj:</span>
+    <span class="comment">% path = '' %Source file</span>
+    <span class="comment">% savepath = '' %Where to save object</span>
+    <span class="comment">% problems = []; %List of issues to troubleshoot</span>
+
+        Fs = 1000; <span class="comment">%Samples per second of raw physio (Hz)</span>
+
+        ecg = []; <span class="comment">%De-noised electrocardiogram signal</span>
+        resp = []; <span class="comment">%De-noised respiration signal</span>
+        gsc = []; <span class="comment">%De-noised galvanic skin conductance signal</span>
+        emg = []; <span class="comment">%De-noised electromyogram signal</span>
+
+        <span class="comment">%Channel names to search for in raw .mw</span>
+        <span class="comment">% Will find FIRST match -- use pickChannels to customize.</span>
+        channel_names = struct( <span class="keyword">...</span>
+            <span class="string">'ecg'</span>,<span class="string">'ECG'</span>,<span class="string">'resp'</span>,<span class="string">'RESP'</span>,<span class="string">'gsc'</span>,<span class="string">'GSC'</span>,<span class="string">'emg'</span>,<span class="string">'EMG'</span>);
+
+        ibis = []; <span class="comment">%Inter-beat intervals (s)</span>
+
+        cleaner = <span class="string">''</span>; <span class="comment">%Name of person who cleaned heartbeats</span>
+                      <span class="comment">% (If not set, will pause before caclHRV by default)</span>
+
+        hrv_tt = table; <span class="comment">%Timetable of calculated HRV stats</span>
+
+        BioSigKit_Analysis <span class="comment">%Output from BioSigKit</span>
+        HRVAS_Analysis <span class="comment">%Output from HRVAS</span>
+    <span class="keyword">end</span>
+</pre><h2 id="4">TRANSIENT PROPERTIES</h2><pre class="codeinput">    properties (Transient)
+        <span class="comment">% These are NOT SAVED -- data is left in original file</span>
+
+        raw_data_tt = timetable(); <span class="comment">%Timetable of raw physio readings from file</span>
+    <span class="keyword">end</span>
+</pre><h2 id="5">DEPENDENT PROPERTIES</h2><pre class="codeinput">    properties (Dependent)
+        <span class="comment">% These are calculated on the fly from the main properties above,</span>
+        <span class="comment">% using get.propertyname methods below</span>
+
+        ecg_tt <span class="comment">%Timetable of de-noised ecg signal</span>
+        resp_tt <span class="comment">%Timetable of de-noised respiration signal</span>
+        gsc_tt <span class="comment">%Timetable of de-noised galvanic skin current signal</span>
+        emg_tt <span class="comment">%Timetable of de-noised electromyography signal</span>
+
+
+        channel_names_t <span class="comment">%Channel name assignments as table</span>
+        ecg_channel <span class="comment">%Search string for ECG channel</span>
+        resp_channel <span class="comment">%Search string for respiration channel</span>
+        gsc_channel <span class="comment">%Search string for GSC channel</span>
+        emg_channel <span class="comment">%Search string for EMG channel</span>
+
+
+        ibis_a <span class="comment">%2-col array of [beattime,ibi] in seconds</span>
+        beat_idx <span class="comment">%ECG-length vector of 0s, 1 if beat, calculated from IBIs</span>
+        ibis_tt <span class="comment">%Timetable of inter-beat intervals</span>
+        ecg_with_beats_tt <span class="comment">%ECG with column of beat indices, for plotting</span>
+        hand_cleaned <span class="comment">%True if someone has certified clean beats</span>
+
+        hrv_t <span class="comment">%HRV data as table (not timetable)</span>
+        hrv_vars <span class="comment">%Available vars (for window functions)</span>
+        psd <span class="comment">%Power spectrum density</span>
+
+        <span class="comment">%Quick booleans testing whether fields have been set yet</span>
+
+        has_raw <span class="comment">%True if raw physio channels have been read</span>
+        has_ecg <span class="comment">%True if ECG has been imported and de-noised</span>
+        has_gsc <span class="comment">%True if GSC has been imported and de-noised</span>
+        has_resp <span class="comment">%True if respiration has been imported and de-noised</span>
+        has_emg <span class="comment">%True if EMG has been imported and de-noised</span>
+        has_ibis <span class="comment">%True if IBI series is present</span>
+        has_hrv <span class="comment">%True if HRV timetable has been calculated</span>
+
+        Time <span class="comment">%Column vector of shared physio timestamps as durations</span>
+
+        <span class="comment">%TODO</span>
+        <span class="comment">%resp_clean_tt</span>
+        <span class="comment">%emg_clean_tt</span>
+        <span class="comment">%gsc_clean_tt</span>
+    <span class="keyword">end</span>
+</pre><h2 id="6">PUBLIC METHODS</h2><pre class="codeinput">    methods
+</pre><h2 id="7">CONSTRUCTOR</h2><pre class="codeinput">        <span class="keyword">function</span> Physio = Physio(sourcepath,preproc_now,channel_names)
+        <span class="comment">%Physio Initialize Physio object</span>
+        <span class="comment">% ELF.Physio() % Create a totally empty object</span>
+        <span class="comment">% ELF.Physio(sourcepath) % Reads file and runs preproc</span>
+        <span class="comment">% ELF.Physio(sourcepath,preproc_now) % If false, only set path</span>
+        <span class="comment">% ELF.Physio(sourcepath,preproc_now,channel_names)</span>
+        <span class="comment">%See also: preproc, importFromPath</span>
+            Physio=Physio@ELF.ELF_HandleObj();
+            <span class="keyword">if</span> nargin&gt;0; Physio.sourcepath=sourcepath; <span class="keyword">end</span>
+            <span class="keyword">if</span> nargin&lt;2; preproc_now = true; <span class="keyword">end</span>
+            <span class="keyword">if</span> nargin&gt;2; Physio.channel_names=channel_names; <span class="keyword">end</span>
+            <span class="keyword">if</span> preproc_now; Physio.preproc; <span class="keyword">end</span>
+        <span class="keyword">end</span>
+</pre><h2 id="8">PREPROC</h2><pre class="codeinput">        <span class="keyword">function</span> preproc(Physio,skip_handclean)
+        <span class="comment">%preproc Read source file and (re)analyze data</span>
+        <span class="comment">% If no sourcepath, abort and return object as-is</span>
+        <span class="comment">% Read input file, choosing appropriate type by file extension</span>
+        <span class="comment">% Physio.preproc %stop before HRV, wait for IBI beat correction</span>
+        <span class="comment">% Physio.preproc(skip_handclean) %calc HRV without manual fixBeats</span>
+        <span class="comment">%See also: ELF.Physio.fixBeats, ELF.Physio.importFromPath</span>
+
+            <span class="keyword">if</span> ~Physio.has_sourcepath; <span class="keyword">return</span>; <span class="keyword">end</span> <span class="comment">%if no source, leave empty</span>
+
+            <span class="keyword">if</span> nargin&lt;2; skip_handclean = false; <span class="keyword">end</span>
+            Physio.importFromPath;
+
+            <span class="keyword">if</span> ~Physio.has_ecg &amp;&amp; Physio.has_raw
+                <span class="keyword">try</span>
+                    Physio.ecgFromMw;
+                    <span class="comment">%P.respFromMw;</span>
+                <span class="keyword">catch</span> ME
+                    Physio.addProblem(ME);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+
+            <span class="keyword">if</span> Physio.has_ecg &amp;&amp; ~Physio.hasIbis; Physio.ibisFromEcg; <span class="keyword">end</span>
+            <span class="comment">%if P.hasResp; P.respFromMw; end</span>
+
+            <span class="keyword">if</span> Physio.hasIbis &amp;&amp; (skip_handclean || Physio.hand_cleaned); <span class="keyword">...</span>
+                Physio.hrvFromIbis; <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%Launch GUI</span>
+        <span class="keyword">function</span> gui(Physio); PhysioGui(Physio); <span class="keyword">end</span>
+
+        <span class="keyword">function</span> importFromPath(Physio,sourcepath)
+        <span class="comment">%Physio.importFromPath Grab data from file, guessing type by extension</span>
+        <span class="comment">% Physio.importFromPath %Use stored sourcepath, abort if not set</span>
+        <span class="comment">% Physio.importFromPath(sourcepath) %Use specified sourcepath</span>
+        <span class="comment">%See also: rawFromMwFile, hrvFromMwRealtimeTxt, ibisFromFile</span>
+
+            <span class="keyword">if</span> nargin&lt;2; sourcepath = Physio.sourcepath; <span class="keyword">end</span>
+            <span class="keyword">if</span> strcmp(sourcepath,<span class="string">''</span>)
+                Physio.addProblem(MException(<span class="string">'Physio:SourceNotSet'</span>, <span class="keyword">...</span>
+                    <span class="string">'Tried to import file, but no sourcepath specified!'</span>));
+                <span class="keyword">return</span>;
+            <span class="keyword">end</span>
+
+            Physio.clearProblems; <span class="comment">%new data, old problems obsolete</span>
+            [folder, filename, extension] = fileparts(sourcepath);
+            <span class="keyword">try</span> <span class="comment">%attempt to read appropriate data based on file extension</span>
+                <span class="keyword">if</span> exist(fullfile(folder,strcat(filename,extension)),<span class="string">'file'</span>)
+                    <span class="keyword">switch</span> extension
+                        <span class="keyword">case</span> <span class="string">'.mw'</span>
+                            Physio.rawFromMwFile();
+                        <span class="keyword">case</span> <span class="string">'.txt'</span>
+                            Physio.hrvFromMwRealtimeTxt();
+                        <span class="keyword">case</span> <span class="string">'.ibi'</span>
+                            Physio.ibisFromFile();
+                        <span class="keyword">otherwise</span>
+                            error(<span class="string">'Unknown file type: %s'</span>,extension);
+                    <span class="keyword">end</span>
+                <span class="keyword">else</span>
+                    error(<span class="string">'Physio:SourceNotFound'</span>, <span class="keyword">...</span>
+                        <span class="string">'Could not find file: %s'</span>,sourcepath);
+                <span class="keyword">end</span>
+            <span class="keyword">catch</span> ME
+                Physio.addProblem(ME);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%pickChannels.m: select which mindware channels to use for what</span>
+        pickChannels(Physio)
+
+
+        <span class="keyword">function</span> plotAll(Physio)
+        <span class="comment">%plotAll Spit out graphs for ECG, IBI, HRV, and wavelet PSD</span>
+        <span class="comment">%See also: plotEcg, plotIbis, plotHrv, plotPsd</span>
+
+            Physio.plotEcg;
+            Physio.plotIbis;
+            Physio.plotHrv;
+            Physio.plotPsd;
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> plotEcg(Physio,withbeats)
+        <span class="comment">%plotEcg Plot denoised ECG signal</span>
+        <span class="comment">% plotEcg %Just the signal</span>
+        <span class="comment">% plotEcg(withbeats) %If true and IBIs available, plot beats</span>
+
+            <span class="keyword">if</span> nargin&lt;2 || ~withbeats || ~Physio.has_ibis; withbeats=false; <span class="keyword">end</span>
+
+            figure;
+            plot(Physio.ecg_tt.Time,Physio.ecg)
+
+            <span class="keyword">if</span> withbeats
+                hold <span class="string">on</span>;
+                plot(Physio.ecg_with_beats_tt.Time, <span class="keyword">...</span>
+                    Physio.ecg_with_beats_tt.Beats)
+            <span class="keyword">end</span>
+
+            xlabel(<span class="string">'Time (s)'</span>);
+            ylabel(<span class="string">'Amplitude (v)'</span>);
+            <span class="keyword">if</span> withbeats
+                legend({<span class="string">'ECG Signal'</span>,<span class="string">'R-Spikes'</span>});
+                title(<span class="string">'ECG with R Peaks'</span>);
+            <span class="keyword">else</span>
+                legend({<span class="string">'ECG Signal'</span>});
+                title(<span class="string">'ECG (denoised)'</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> plotHrv(Physio)
+            figure;
+            plot(Physio.hrv_tt.Time,Physio.hrv_tt.LFPower);
+            hold <span class="string">on</span>;
+            plot(Physio.hrv_tt.Time,Physio.hrv_tt.HFPower);
+            xlabel(<span class="string">'s'</span>);
+            ylabel(<span class="string">'ms^2'</span>);
+            legend({<span class="string">'LFPower'</span>,<span class="string">'HFPower'</span>});
+            title(<span class="string">'HRV (absolute units)'</span>);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> plotIbis(Physio)
+            figure;
+            plot(Physio.ibis_tt.Time,Physio.ibis_tt.IBI);
+            xlabel(<span class="string">'Time (s)'</span>);
+            ylabel(<span class="string">'R-R IBI (s)'</span>);
+            title(<span class="string">'Inter-Beat Intervals'</span>);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> plotPsd(Physio)
+            mesh(Physio.HRVAS_Analysis.tf.wav.psd);
+        <span class="keyword">end</span>
+
+
+        <span class="keyword">function</span> stats = hrvWinStats(Physio,window_start,window_end,vars,func)
+        <span class="comment">%hrvWinStats Apply (flattening) window function to hrv timetable</span>
+        <span class="comment">% (Uses @mean by default, but you can pass anything</span>
+        <span class="comment">%</span>
+        <span class="comment">% hrvWinStats(window_start,window_end) %Mean HRV data for window</span>
+        <span class="comment">% hrvWinStats(window_start,window_end,vars) %Grab specific vars</span>
+        <span class="comment">%                                           % {'var1','var2'...}</span>
+        <span class="comment">% hrvWinStats(window_start,window_end,vars,func) %Custom function</span>
+        <span class="comment">%                                                % e.g. @max, @(P) ...</span>
+        <span class="comment">%See also: hrvWindow, Event</span>
+
+            <span class="keyword">if</span> nargin&lt;5; func=@mean; <span class="keyword">end</span>
+            <span class="keyword">if</span> nargin&lt;4; vars=Physio.hrv_vars; <span class="keyword">end</span>
+
+            <span class="comment">%init empty table to return if there are errors</span>
+            stats = struct;
+            <span class="keyword">for</span> i=1:length(vars); stats.(vars{i})=NaN; <span class="keyword">end</span>
+            <span class="keyword">if</span> ~Physio.has_hrv; <span class="keyword">return</span>; <span class="keyword">end</span>
+
+
+            <span class="keyword">try</span>
+                t = timetable2table( <span class="keyword">...</span>
+                    Physio.hrvWindow(window_start,window_end,vars));
+                t.Time = [];
+                stats = table2struct(varfun(func,t));
+            <span class="keyword">catch</span> ME
+                Physio.addProblem(ME)
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> hrv_win = hrvWindow(Physio,window_start,window_end,vars)
+        <span class="comment">%hrvWindow: HRV stats window using hrv_tt</span>
+        <span class="comment">%See also: hrvWinStats</span>
+
+            <span class="keyword">if</span> nargin&lt;4; vars=Physio.hrv_vars; <span class="keyword">end</span>
+
+            <span class="comment">%if no HRV, calculate it</span>
+            <span class="keyword">if</span> ~Physio.has_hrv; Physio.hrvFromIbis; <span class="keyword">end</span>
+
+            <span class="comment">%if only passed 'varname', make {'varname'}</span>
+            <span class="keyword">if</span> ~iscellstr(vars); vars=cellstr(vars); <span class="keyword">end</span>
+
+            <span class="comment">%init timetable with NaT, NaNs</span>
+            hrv_win = timetable;
+            <span class="keyword">for</span> i=1:length(vars); hrv_win.(vars{i})=NaN; <span class="keyword">end</span>
+
+            <span class="keyword">try</span>
+                hrv_win = retime(Physio.hrv_tt(:,vars), <span class="keyword">...</span>
+                    <span class="string">'regular'</span>, <span class="string">'spline'</span>, <span class="keyword">...</span>
+                    <span class="string">'TimeStep'</span>, seconds(1/Physio.Fs));
+                hrv_win = sliceTT(hrv_win,window_start,window_end);
+            <span class="keyword">catch</span> ME
+                Physio.addProblem(ME);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> rawFromMwFile (P,sourcepath)
+        <span class="comment">%rawFromMwFile: Set raw_data_tt from sourcepath to .Mw file</span>
+        <span class="comment">% rawFromMwFile %Read from saved P.sourcepath</span>
+        <span class="comment">% rawFromMwFile(sourcepath) %Read from specified sourcepath</span>
+        <span class="comment">%See also: readMw, ecgFromMw</span>
+
+            <span class="keyword">if</span> nargin&lt;2; sourcepath=P.sourcepath; <span class="keyword">end</span>
+            [P.raw_data_tt,P.Fs] = <span class="keyword">...</span><span class="comment"> %read raw data from file</span>
+                ELF.Physio.readMw(sourcepath);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> ecgFromMw(P,channel_name)
+        <span class="comment">%ecgFromMw Set ecg from raw_data_tt and denoise</span>
+        <span class="comment">% ecgFromMw %Finds first channel name containing 'ECG'</span>
+        <span class="comment">% ecgFromMw(channel_name) %Finds specified channel name</span>
+        <span class="comment">%See also: rawFromMwFile, ecg2ibi</span>
+
+            <span class="keyword">if</span> nargin&lt;2; channel_name=P.channel_names.ecg; <span class="keyword">end</span>
+            <span class="keyword">try</span>
+                raw_ecg = P.findChannel(channel_name);
+            <span class="keyword">catch</span> ME
+                P.addProblem(ME);
+            <span class="keyword">end</span>
+            P.ecg = ELF.Physio.denoiseEcg(raw_ecg);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> respFromMw(P,channel_name)
+        <span class="comment">%respFromMw Set resp from raw_data_tt and denoise</span>
+        <span class="comment">% respFromMw %Finds first channel name containing 'RESP'</span>
+        <span class="comment">% respFromMw(channel_name) %Finds specified channel name</span>
+        <span class="comment">%See also: rawFromMwFile</span>
+
+            <span class="keyword">if</span> nargin&lt;2; channel_name=P.channel_names.resp; <span class="keyword">end</span>
+            <span class="keyword">try</span>
+                raw_resp = P.findChannel(channel_name);
+            <span class="keyword">catch</span>
+                P.addProblem(ME);
+            <span class="keyword">end</span>
+            P.resp = ELF.Physio.denoiseResp(raw_resp);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> gscFromMw(Physio,channel_name)
+        <span class="comment">%gscFromMw Set GSC from raw_data_tt and denoise</span>
+        <span class="comment">% gscFromMw %Finds first channel name containing 'GSC'</span>
+        <span class="comment">% gscFromMw(channel_name) %Finds specified channel name</span>
+        <span class="comment">%See also: rawFromMwFile</span>
+
+            <span class="keyword">if</span> nargin&lt;2; channel_name=Physio.channel_names.gsc; <span class="keyword">end</span>
+            <span class="keyword">try</span>
+                raw_gsc = Physio.findChannel(channel_name);
+            <span class="keyword">catch</span> ME
+                Physio.addProblem(ME);
+            <span class="keyword">end</span>
+            Physio.gsc = ELF.Physio.denoiseGsc(raw_gsc);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> emgFromMw(Physio,channel_name)
+        <span class="comment">%emgFromMw Set EMG from raw_data_tt and denoise</span>
+        <span class="comment">% emgFromMw %Finds first channel name containing 'EMG'</span>
+        <span class="comment">% emgFromMw(channel_name) %Finds specified channel name</span>
+        <span class="comment">%See also: rawFromMwFile</span>
+
+        <span class="keyword">if</span> nargin&lt;2; channel_name=Physio.channel_names.emg; <span class="keyword">end</span>
+            <span class="keyword">try</span>
+                raw_emg = Physio.findChannel(channel_name);
+            <span class="keyword">catch</span> ME
+                Physio.addProblem(ME);
+            <span class="keyword">end</span>
+            Physio.emg = ELF.Physio.denoiseGsc(raw_emg);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> ibisFromEcg(Physio)
+        <span class="comment">%ibisFromEcg Use ECG to find R peaks and calculate IBI series</span>
+        <span class="comment">%See also: fixBeats, ibisFromFile</span>
+
+            <span class="keyword">if</span> ~Physio.has_ecg
+                Physio.addProblem(MException(<span class="string">'Physio:EcgNotFound'</span>, <span class="keyword">...</span>
+                    <span class="string">'Tried to calc IBIs from ECG, but had no ECG signal!'</span>));
+                <span class="keyword">return</span>;
+            <span class="keyword">end</span>
+
+            <span class="keyword">try</span>
+                [Physio.ibis,Physio.BioSigKit_Analysis] = <span class="keyword">...</span><span class="comment"> %get beats</span>
+                    ELF.Physio.ecg2ibi(Physio.ecg,Physio.Fs);
+            <span class="keyword">catch</span> ME
+                Physio.addProblem(ME);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> ibis = ibisFromFile(Physio,ibi_path)
+        <span class="comment">%ibisFromFile Read IBI series from file</span>
+        <span class="comment">% TODO</span>
+        <span class="comment">%See also: ibisFromEcg, ibisFromMwEdit, fixBeats</span>
+
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> ibis = ibisFromMwEdit(Physio,edh_path)
+        <span class="comment">%ibisFromEdh Read hand-cleaned ibis from .edh (Mw edit file)</span>
+        <span class="comment">% TODO</span>
+        <span class="comment">%See also: ibisFromEcg, ibisFromFile, fixBeats</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> hrvFromMwRealtimeTxt(Physio,mwrt_path)
+        <span class="comment">%hrvFromMwRealtimeTxt: populate HRV table from pre-analyzed RT write</span>
+        <span class="comment">%</span>
+        <span class="comment">%See also: readMwRealtime</span>
+            <span class="keyword">if</span> nargin&lt;2; mwrt_path = Physio.path; <span class="keyword">end</span>
+            Physio.hrv_tt = ELF.Physio.readMwRealtime(mwrt_path);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> hrvFromIbis(Physio,settings)
+        <span class="comment">%hrvFromIbis Use IBI series to calculate HRV</span>
+        <span class="comment">% hrvFromIbis %Use default HRV settings</span>
+        <span class="comment">% hrvFromIbis %Use custom settings</span>
+        <span class="comment">%See also: calcHrv, hrvGui, defaultHRVASSettings</span>
+            <span class="keyword">if</span> nargin&lt;2; settings=ELF.Physio.defaultHRVASSettings; <span class="keyword">end</span>
+            <span class="keyword">try</span>
+                [Physio.hrv_tt,Physio.HRVAS_Analysis] = <span class="keyword">...</span>
+                    ELF.Physio.calcHrv(Physio.ibis,settings);
+            <span class="keyword">catch</span> ME
+                Physio.addProblem(ME);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> respFromIbis(Physio,ibis)
+        <span class="comment">%respFromIbis Calculate ECG-derived respiration</span>
+        <span class="comment">% TODO</span>
+        <span class="comment">%See also: ibi2resp</span>
+            <span class="keyword">if</span> nargin&lt;2; ibis=Physio.ibis; <span class="keyword">end</span>
+            <span class="keyword">try</span>
+                Physio.resp = ELF.Physio.ibi2resp(ibis);
+            <span class="keyword">catch</span> ME
+                Physio.addProblem(ME);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> exportIbis(Physio,ibi_savepath)
+        <span class="comment">%exportIbis Export IBI series to file</span>
+        <span class="comment">% exportIbis % Prompts for savepath</span>
+        <span class="comment">% exportIbis(savepath) % Writes to specified file</span>
+        <span class="comment">%  (File extension determines save type: .csv, .xlsx, &amp;c.</span>
+        <span class="comment">% TODO: format options (ms or s, w or w/o beats, horizontal, &amp;c.)</span>
+        <span class="comment">%See also: ELF.Physio.writeIbis, writetable</span>
+
+            <span class="keyword">if</span> nargin&lt;2; [~,ibi_savepath] = uiputfile(); <span class="keyword">end</span>
+            ELF.Physio.writeIbis(Physio.ibis,ibi_savepath);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> exportHrv(Physio,hrv_savepath)
+        <span class="comment">%exportHrv Export HRV table to file</span>
+        <span class="comment">% exportHrv % Prompts for savepath</span>
+        <span class="comment">% exportHrv(savepath) % Writes to specified file</span>
+        <span class="comment">%  (File extension determines save type: .csv, .xlsx, &amp;c.)</span>
+
+            <span class="keyword">if</span> nargin&lt;2; [~,hrv_savepath] = uiputfile(); <span class="keyword">end</span>
+            ELF.Physio.writeHrv(Physio.hrv_t,hrv_savepath);
+        <span class="keyword">end</span>
+
+        <span class="comment">%fixBeats.m: clean up ibi by hand-correcting</span>
+        fixBeats(Physio)
+
+        <span class="comment">%HRVAS wrapper</span>
+        hrvGui(Physio)
+</pre><pre class="codeoutput error">No appropriate method, property, or field 'has_sourcepath' for class 'ELF.Physio'.
+
+Error in ELF.Physio/preproc (line 119)
+            if ~Physio.has_sourcepath; return; end %if no source, leave empty
+
+Error in ELF.Physio (line 107)
+            if preproc_now; Physio.preproc; end
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+
+    methods
+</pre><h2 id="10">GETTERS AND SETTERS</h2><pre class="codeinput">        <span class="comment">% SETTERS: do bounds-checking when values are assigned</span>
+
+        <span class="comment">% GETTERS: calculate dependent properties on the fly</span>
+
+        <span class="keyword">function</span> ecg_tt = get.ecg_tt(P)
+            ecg_tt = timetable(P.ecg,<span class="string">'SamplingRate'</span>,P.Fs, <span class="keyword">...</span>
+                <span class="string">'VariableNames'</span>,{<span class="string">'ECG'</span>});
+        <span class="keyword">end</span>
+
+        <span class="comment">%get ibis as array</span>
+        <span class="keyword">function</span> ibis_a = get.ibis_a(P); ibis_a = [cumsum(P.ibis),P.ibis]; <span class="keyword">end</span>
+
+        <span class="comment">%get ibis as timetable</span>
+        <span class="keyword">function</span> ibis_tt = get.ibis_tt(P)
+            ibis_tt = timetable(seconds(cumsum(P.ibis)),seconds(P.ibis), <span class="keyword">...</span>
+                <span class="string">'VariableNames'</span>,{<span class="string">'IBI'</span>});
+        <span class="keyword">end</span>
+
+        <span class="comment">%get beat indices</span>
+        <span class="keyword">function</span> beat_idx = get.beat_idx(P)
+            beat_idx = zeros(length(P.ecg),1);
+
+            beats = round((cumsum(P.ibis)*P.Fs));
+            beat_idx(beats,:) = 1;
+            beat_idx(length(P.ecg)+1:end) = [];
+        <span class="keyword">end</span>
+
+        <span class="comment">%get power spectrum density (wavelet)</span>
+        <span class="keyword">function</span> psd = get.psd(P); psd = P.HRVAS_Analysis.tf.wav.psd; <span class="keyword">end</span>
+
+        <span class="comment">%get clean ecg timetable with IBI beats as bools (for plots)</span>
+        <span class="keyword">function</span> ecg_with_beats_tt = get.ecg_with_beats_tt(P)
+            ECG = P.ecg;
+            Beats = P.beat_idx;
+            ecg_with_beats_tt = timetable(P.Time,ECG,Beats);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> hrv_t = get.hrv_t(Physio);
+            <span class="comment">%hrv as simple table</span>
+            hrv_t = timetable2table(P.hrv_tt);
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> hrv_vars = get.hrv_vars(P)
+        <span class="comment">%hrv_vars: List vars available for HRV window functions</span>
+            hrv_vars = P.hrv_tt.Properties.VariableNames;
+        <span class="keyword">end</span>
+
+        <span class="keyword">function</span> hrv_wins(Physio,wins_t,vars)
+        <span class="comment">%hrv_wins: window estimates for multiple windows</span>
+           <span class="comment">% if</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">%channel name struct interfaces</span>
+        <span class="keyword">function</span> ecg_channel = get.ecg_channel(Physio); <span class="keyword">...</span>
+            ecg_channel = Physio.channel_names.ecg; <span class="keyword">end</span>
+        <span class="keyword">function</span> set.ecg_channel(Physio,name); <span class="keyword">...</span>
+            Physio.channel_names.ecg = name; <span class="keyword">end</span>
+        <span class="keyword">function</span> resp_channel = get.resp_channel(Physio); <span class="keyword">...</span>
+            resp_channel = Physio.channel_names.resp; <span class="keyword">end</span>
+        <span class="keyword">function</span> set.resp_channel(Physio,name); <span class="keyword">...</span>
+            Physio.channel_names.resp = name; <span class="keyword">end</span>
+        <span class="keyword">function</span> gsc_channel = get.gsc_channel(Physio); <span class="keyword">...</span>
+        	gsc_channel = Physio.channel_names.gsc; <span class="keyword">end</span>
+        <span class="keyword">function</span> set.gsc_channel(Physio,name); <span class="keyword">...</span>
+            Physio.channel_names.gsc = name; <span class="keyword">end</span>
+        <span class="keyword">function</span> emg_channel = get.emg_channel(Physio); <span class="keyword">...</span>
+            emg_channel = Physio.channel_names.emg; <span class="keyword">end</span>
+        <span class="keyword">function</span> set.emg_channel(Physio,name); <span class="keyword">...</span>
+            Physio.channel_names.emg = name; <span class="keyword">end</span>
+
+        <span class="keyword">function</span> channel_names_t = get.channel_names_t(Physio); <span class="keyword">...</span>
+            channel_names_t = struct2table(Physio.channel_names); <span class="keyword">end</span>
+
+
+
+        <span class="keyword">function</span> has_raw = get.has_raw(Physio); <span class="keyword">...</span>
+                has_raw = ~isempty(Physio.raw_data_tt); <span class="keyword">end</span>
+
+        <span class="keyword">function</span> has_ecg = get.has_ecg(Physio); <span class="keyword">...</span>
+                has_ecg = ~isempty(Physio.ecg); <span class="keyword">end</span>
+        <span class="keyword">function</span> has_gsc = get.has_gsc(Physio); <span class="keyword">...</span>
+                has_gsc = ~isempty(Physio.gsc); <span class="keyword">end</span>
+        <span class="keyword">function</span> has_resp = get.has_resp(Physio); <span class="keyword">...</span>
+                has_resp = ~isempty(Physio.resp); <span class="keyword">end</span>
+        <span class="keyword">function</span> has_emg = get.has_emg(Physio); <span class="keyword">...</span>
+                has_emg = ~isempty(Physio.resp); <span class="keyword">end</span>
+
+        <span class="keyword">function</span> hand_cleaned = get.hand_cleaned(Physio); <span class="keyword">...</span>
+            hand_cleaned = ~isempty(Physio.cleaner); <span class="keyword">end</span>
+        <span class="keyword">function</span> has_ibis = get.has_ibis(Physio); <span class="keyword">...</span>
+            has_ibis = ~isempty(Physio.ibis); <span class="keyword">end</span>
+
+        <span class="keyword">function</span> has_hrv = get.has_hrv(Physio); <span class="keyword">...</span>
+            has_hrv = ~isempty(Physio.hrv_tt); <span class="keyword">end</span>
+
+        <span class="keyword">function</span> Time = get.Time(Physio)
+        <span class="comment">%Time Calculate appropriate duration vector for timetables</span>
+            <span class="keyword">if</span> Physio.has_raw; Time=Physio.raw_data_tt.Time; <span class="keyword">return</span>; <span class="keyword">end</span>
+            <span class="keyword">if</span> Physio.has_ecg
+                Time=seconds(1:length(Physio.ecg))./Physio.Fs; <span class="keyword">return</span>;
+            <span class="keyword">end</span>
+            Time = seconds(1:cumsum(Physio.ibis)*Physio.Fs)./Physio.Fs;
+        <span class="keyword">end</span>
+
+<span class="comment">%         function ibis = asdf(P)</span>
+<span class="comment">%             rpeaks = find(P.ecg_with_beats_tt.Beats)';</span>
+<span class="comment">%             rr = [rpeaks rpeaks(end)]-[0 rpeaks]; %get inter-beat intervals</span>
+<span class="comment">%             rr = rr(1:end-1)'; %trim missing vals from beginning/end</span>
+<span class="comment">%</span>
+<span class="comment">%             ibis = rr./P.Fs; %output in seconds</span>
+<span class="comment">%         end</span>
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+</pre><h2 id="12">STATIC METHODS</h2><pre class="codeinput">    methods (Static)
+        <span class="comment">% These methods can be called from outside:</span>
+        <span class="comment">% ELF.Physio.function(args) does not require a new object be made</span>
+        <span class="comment">% This is so you can use them for debugging or as general-purpose</span>
+
+        <span class="comment">% readMw.m: read a .Mw file containing physio recordings</span>
+        [raw_data_tt, Fs] = readMw(sourcepath,mins)
+
+        <span class="comment">% denoiseEcg.m: get de-noised ECG</span>
+        ecg_clean = denoiseEcg(ecg_raw, Fs)
+
+        <span class="comment">% denoiseResp.m: get de-noised respiration</span>
+        resp_clean = denoiseResp(resp_raw, Fs)
+
+        <span class="comment">% denoisegsc.m: get de-noised gsc</span>
+        gsc_clean = denoisegsc(resp_raw, Fs)
+
+        <span class="comment">% denoiseEmg.m: get de-noised EMG</span>
+        emg_clean = denoiseEmg(resp_raw, Fs)
+
+        <span class="comment">% ecg2ibis.m: find beats, get ibi series in standard format</span>
+        [ibis,BioSigKit_Analysis] = ecg2ibi(ecg_clean, Fs)
+
+        <span class="comment">% calcHrv.m: get heartrate variability data from ibi series</span>
+        [hrv_tt,HRVAS_Analysis,dibis] = calcHrv(ibis,settings)
+
+        <span class="comment">% read realtime physio stats generated by mindware</span>
+        hrv_tt = readMwRealtime(path)
+
+        <span class="comment">% ibiTTtoArray: get ibi timetable to standard .ibi format</span>
+        <span class="keyword">function</span> ibi_array = ibiTTtoArray(ibi_tt)
+                ibi_tt.Time.Format = <span class="string">'s'</span>;
+                ibi_tt.IBI.Format = <span class="string">'s'</span>;
+                ibi_array = [seconds(ibi_tt.Time), <span class="keyword">...</span>
+                seconds(ibi_tt.IBI)];
+        <span class="keyword">end</span>
+
+        <span class="comment">%ibis2resp.m: get ecg-derived respiration from ibi series</span>
+        resp = ibis2resp(ibis);
+
+        <span class="comment">%writeIBI.m: write .ibi file in standard text format</span>
+        writeIbis(ibis,savepath)
+
+        <span class="keyword">function</span> writeHrv(hrv_t,hrv_savepath)
+            writetable(hrv_t,hrv_savepath);
+        <span class="keyword">end</span>
+
+        <span class="comment">%defaultHRVASSettings.m: return Greg's HRVAS settings</span>
+        hrvas_settings = defaultHRVASSettings() <span class="comment">%From Greg</span>
+
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><h2 id="14">GLOSSARY</h2><p>SDNN	ms	Standard deviation of NN intervals SDRR	ms	Standard deviation of RR intervals SDANN	ms	Standard deviation of the average NN intervals for each 5?min segment of a 24?h HRV recording SDNN index (SDNNI)	ms	Mean of the standard deviations of all the NN intervals for each 5?min segment of a 24?h HRV recording pNN50	%	Percentage of successive RR intervals that differ by more than 50?ms HR Max???HR Min	bpm	Average difference between the highest and lowest heart rates during each respiratory cycle RMSSD	ms	Root mean square of successive RR interval differences HRV triangular index		Integral of the density of the RR interval histogram divided by its height TINN	ms	Baseline width of the RR interval histogram</p><p>ULF power	ms2	Absolute power of the ultra-low-frequency band (?0.003?Hz) VLF power	ms2	Absolute power of the very-low-frequency band (0.0033?0.04?Hz) LF peak	Hz	Peak frequency of the low-frequency band (0.04?0.15?Hz) LF power	ms2	Absolute power of the low-frequency band (0.04?0.15?Hz) LF power	nu	Relative power of the low-frequency band (0.04?0.15?Hz) in normal units LF power	%	Relative power of the low-frequency band (0.04?0.15?Hz) HF peak	Hz	Peak frequency of the high-frequency band (0.15?0.4?Hz) HF power	ms2	Absolute power of the high-frequency band (0.15?0.4?Hz) HF power	nu	Relative power of the high-frequency band (0.15?0.4?Hz) in normal units HF power	%	Relative power of the high-frequency band (0.15?0.4?Hz) LF/HF	%	Ratio of LF-to-HF power</p><pre class="codeinput"><span class="comment">% RSA = ln(HFPower)</span>
+<span class="comment">% S	ms	Area of the ellipse which represents total HRV</span>
+<span class="comment">% SD1	ms	Poincar? plot standard deviation perpendicular the line of identity</span>
+<span class="comment">% SD2	ms	Poincar? plot standard deviation along the line of identity</span>
+<span class="comment">% SD1/SD2	%	Ratio of SD1-to-SD2</span>
+<span class="comment">% ApEn		Approximate entropy, which measures the regularity and complexity of a time series</span>
+<span class="comment">% SampEn		Sample entropy, which measures the regularity and complexity of a time series</span>
+<span class="comment">% DFA ?1		Detrended fluctuation analysis, which describes short-term fluctuations</span>
+<span class="comment">% DFA ?2		Detrended fluctuation analysis, which describes long-term fluctuations</span>
+<span class="comment">% D2		Correlation dimension, which estimates the minimum number of variables required to construct a model of system dynamics</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% ASDF
+classdef Physio < ELF.ELF_HandleObj
+%Physio: Physiological data and processing routines
+% Channel data from mindware files and associated cleaning code
+%  (e.g. de-noising ECG, calculating HRV)
+% Can be used standalone or as part of a parent Task (to combine/batch)
+%See also: Task, Event, Behav
+    
+    %% MAIN PROPERTIES    
+    properties
+    %These are SAVED whenever the object is saved
+    %Inherited from ELF_HandleObj:
+    % path = '' %Source file
+    % savepath = '' %Where to save object
+    % problems = []; %List of issues to troubleshoot
+
+        Fs = 1000; %Samples per second of raw physio (Hz)
+        
+        ecg = []; %De-noised electrocardiogram signal
+        resp = []; %De-noised respiration signal
+        gsc = []; %De-noised galvanic skin conductance signal
+        emg = []; %De-noised electromyogram signal
+        
+        %Channel names to search for in raw .mw
+        % Will find FIRST match REPLACE_WITH_DASH_DASH use pickChannels to customize.
+        channel_names = struct( ...
+            'ecg','ECG','resp','RESP','gsc','GSC','emg','EMG');
+        
+        ibis = []; %Inter-beat intervals (s)
+        
+        cleaner = ''; %Name of person who cleaned heartbeats
+                      % (If not set, will pause before caclHRV by default)
+        
+        hrv_tt = table; %Timetable of calculated HRV stats
+        
+        BioSigKit_Analysis %Output from BioSigKit
+        HRVAS_Analysis %Output from HRVAS
+    end
+    
+    %% TRANSIENT PROPERTIES
+    properties (Transient)
+        % These are NOT SAVED REPLACE_WITH_DASH_DASH data is left in original file
+        
+        raw_data_tt = timetable(); %Timetable of raw physio readings from file
+    end
+    
+    %% DEPENDENT PROPERTIES
+    properties (Dependent)
+        % These are calculated on the fly from the main properties above,
+        % using get.propertyname methods below
+        
+        ecg_tt %Timetable of de-noised ecg signal
+        resp_tt %Timetable of de-noised respiration signal
+        gsc_tt %Timetable of de-noised galvanic skin current signal
+        emg_tt %Timetable of de-noised electromyography signal
+        
+        
+        channel_names_t %Channel name assignments as table
+        ecg_channel %Search string for ECG channel
+        resp_channel %Search string for respiration channel
+        gsc_channel %Search string for GSC channel
+        emg_channel %Search string for EMG channel
+        
+        
+        ibis_a %2-col array of [beattime,ibi] in seconds
+        beat_idx %ECG-length vector of 0s, 1 if beat, calculated from IBIs
+        ibis_tt %Timetable of inter-beat intervals
+        ecg_with_beats_tt %ECG with column of beat indices, for plotting
+        hand_cleaned %True if someone has certified clean beats
+        
+        hrv_t %HRV data as table (not timetable)
+        hrv_vars %Available vars (for window functions)
+        psd %Power spectrum density
+        
+        %Quick booleans testing whether fields have been set yet
+        
+        has_raw %True if raw physio channels have been read
+        has_ecg %True if ECG has been imported and de-noised
+        has_gsc %True if GSC has been imported and de-noised
+        has_resp %True if respiration has been imported and de-noised
+        has_emg %True if EMG has been imported and de-noised
+        has_ibis %True if IBI series is present
+        has_hrv %True if HRV timetable has been calculated
+        
+        Time %Column vector of shared physio timestamps as durations
+        
+        %TODO
+        %resp_clean_tt
+        %emg_clean_tt
+        %gsc_clean_tt
+    end
+    
+    %% PUBLIC METHODS
+    methods
+        %% CONSTRUCTOR
+        function Physio = Physio(sourcepath,preproc_now,channel_names)
+        %Physio Initialize Physio object
+        % ELF.Physio() % Create a totally empty object
+        % ELF.Physio(sourcepath) % Reads file and runs preproc
+        % ELF.Physio(sourcepath,preproc_now) % If false, only set path
+        % ELF.Physio(sourcepath,preproc_now,channel_names)
+        %See also: preproc, importFromPath
+            Physio=Physio@ELF.ELF_HandleObj();
+            if nargin>0; Physio.sourcepath=sourcepath; end
+            if nargin<2; preproc_now = true; end
+            if nargin>2; Physio.channel_names=channel_names; end
+            if preproc_now; Physio.preproc; end
+        end
+        
+        %% PREPROC
+        function preproc(Physio,skip_handclean)
+        %preproc Read source file and (re)analyze data
+        % If no sourcepath, abort and return object as-is
+        % Read input file, choosing appropriate type by file extension
+        % Physio.preproc %stop before HRV, wait for IBI beat correction
+        % Physio.preproc(skip_handclean) %calc HRV without manual fixBeats
+        %See also: ELF.Physio.fixBeats, ELF.Physio.importFromPath
+        
+            if ~Physio.has_sourcepath; return; end %if no source, leave empty
+        
+            if nargin<2; skip_handclean = false; end
+            Physio.importFromPath;
+            
+            if ~Physio.has_ecg && Physio.has_raw        
+                try
+                    Physio.ecgFromMw;
+                    %P.respFromMw;
+                catch ME
+                    Physio.addProblem(ME);
+                end
+            end
+            
+            if Physio.has_ecg && ~Physio.hasIbis; Physio.ibisFromEcg; end
+            %if P.hasResp; P.respFromMw; end
+            
+            if Physio.hasIbis && (skip_handclean || Physio.hand_cleaned); ...
+                Physio.hrvFromIbis; end
+        end
+        
+        %Launch GUI
+        function gui(Physio); PhysioGui(Physio); end
+        
+        function importFromPath(Physio,sourcepath)
+        %Physio.importFromPath Grab data from file, guessing type by extension
+        % Physio.importFromPath %Use stored sourcepath, abort if not set
+        % Physio.importFromPath(sourcepath) %Use specified sourcepath
+        %See also: rawFromMwFile, hrvFromMwRealtimeTxt, ibisFromFile
+        
+            if nargin<2; sourcepath = Physio.sourcepath; end
+            if strcmp(sourcepath,'')
+                Physio.addProblem(MException('Physio:SourceNotSet', ...
+                    'Tried to import file, but no sourcepath specified!'));
+                return;
+            end
+            
+            Physio.clearProblems; %new data, old problems obsolete
+            [folder, filename, extension] = fileparts(sourcepath);
+            try %attempt to read appropriate data based on file extension
+                if exist(fullfile(folder,strcat(filename,extension)),'file')
+                    switch extension
+                        case '.mw'
+                            Physio.rawFromMwFile();
+                        case '.txt'
+                            Physio.hrvFromMwRealtimeTxt();
+                        case '.ibi'
+                            Physio.ibisFromFile();
+                        otherwise
+                            error('Unknown file type: %s',extension);
+                    end
+                else
+                    error('Physio:SourceNotFound', ...
+                        'Could not find file: %s',sourcepath);
+                end
+            catch ME
+                Physio.addProblem(ME);
+            end
+        end
+
+        %pickChannels.m: select which mindware channels to use for what
+        pickChannels(Physio)
+        
+
+        function plotAll(Physio)
+        %plotAll Spit out graphs for ECG, IBI, HRV, and wavelet PSD
+        %See also: plotEcg, plotIbis, plotHrv, plotPsd
+
+            Physio.plotEcg;
+            Physio.plotIbis;
+            Physio.plotHrv;
+            Physio.plotPsd;
+        end
+        
+        function plotEcg(Physio,withbeats)
+        %plotEcg Plot denoised ECG signal
+        % plotEcg %Just the signal
+        % plotEcg(withbeats) %If true and IBIs available, plot beats 
+        
+            if nargin<2 || ~withbeats || ~Physio.has_ibis; withbeats=false; end
+
+            figure;
+            plot(Physio.ecg_tt.Time,Physio.ecg)
+            
+            if withbeats
+                hold on;
+                plot(Physio.ecg_with_beats_tt.Time, ...
+                    Physio.ecg_with_beats_tt.Beats)  
+            end
+            
+            xlabel('Time (s)');
+            ylabel('Amplitude (v)');
+            if withbeats
+                legend({'ECG Signal','R-Spikes'});
+                title('ECG with R Peaks');
+            else
+                legend({'ECG Signal'});
+                title('ECG (denoised)');
+            end
+        end
+        
+        function plotHrv(Physio)
+            figure;
+            plot(Physio.hrv_tt.Time,Physio.hrv_tt.LFPower);
+            hold on;
+            plot(Physio.hrv_tt.Time,Physio.hrv_tt.HFPower);
+            xlabel('s');
+            ylabel('ms^2');
+            legend({'LFPower','HFPower'});
+            title('HRV (absolute units)');
+        end 
+        
+        function plotIbis(Physio)
+            figure;
+            plot(Physio.ibis_tt.Time,Physio.ibis_tt.IBI);
+            xlabel('Time (s)');
+            ylabel('R-R IBI (s)');
+            title('Inter-Beat Intervals');
+        end
+        
+        function plotPsd(Physio)
+            mesh(Physio.HRVAS_Analysis.tf.wav.psd);
+        end
+        
+        
+        function stats = hrvWinStats(Physio,window_start,window_end,vars,func)
+        %hrvWinStats Apply (flattening) window function to hrv timetable
+        % (Uses @mean by default, but you can pass anything
+        % 
+        % hrvWinStats(window_start,window_end) %Mean HRV data for window
+        % hrvWinStats(window_start,window_end,vars) %Grab specific vars
+        %                                           % {'var1','var2'...}
+        % hrvWinStats(window_start,window_end,vars,func) %Custom function
+        %                                                % e.g. @max, @(P) ...
+        %See also: hrvWindow, Event
+        
+            if nargin<5; func=@mean; end
+            if nargin<4; vars=Physio.hrv_vars; end
+            
+            %init empty table to return if there are errors
+            stats = struct;
+            for i=1:length(vars); stats.(vars{i})=NaN; end
+            if ~Physio.has_hrv; return; end
+
+            
+            try
+                t = timetable2table( ...
+                    Physio.hrvWindow(window_start,window_end,vars));
+                t.Time = [];
+                stats = table2struct(varfun(func,t));
+            catch ME
+                Physio.addProblem(ME)
+            end
+        end
+        
+        function hrv_win = hrvWindow(Physio,window_start,window_end,vars)
+        %hrvWindow: HRV stats window using hrv_tt
+        %See also: hrvWinStats
+        
+            if nargin<4; vars=Physio.hrv_vars; end
+            
+            %if no HRV, calculate it
+            if ~Physio.has_hrv; Physio.hrvFromIbis; end
+            
+            %if only passed 'varname', make {'varname'}
+            if ~iscellstr(vars); vars=cellstr(vars); end
+            
+            %init timetable with NaT, NaNs
+            hrv_win = timetable;
+            for i=1:length(vars); hrv_win.(vars{i})=NaN; end
+            
+            try
+                hrv_win = retime(Physio.hrv_tt(:,vars), ...
+                    'regular', 'spline', ...
+                    'TimeStep', seconds(1/Physio.Fs));
+                hrv_win = sliceTT(hrv_win,window_start,window_end);
+            catch ME
+                Physio.addProblem(ME);           
+            end
+        end
+                
+        function rawFromMwFile (P,sourcepath)
+        %rawFromMwFile: Set raw_data_tt from sourcepath to .Mw file
+        % rawFromMwFile %Read from saved P.sourcepath
+        % rawFromMwFile(sourcepath) %Read from specified sourcepath
+        %See also: readMw, ecgFromMw
+        
+            if nargin<2; sourcepath=P.sourcepath; end
+            [P.raw_data_tt,P.Fs] = ... %read raw data from file
+                ELF.Physio.readMw(sourcepath);
+        end
+        
+        function ecgFromMw(P,channel_name)
+        %ecgFromMw Set ecg from raw_data_tt and denoise
+        % ecgFromMw %Finds first channel name containing 'ECG'
+        % ecgFromMw(channel_name) %Finds specified channel name
+        %See also: rawFromMwFile, ecg2ibi
+
+            if nargin<2; channel_name=P.channel_names.ecg; end
+            try 
+                raw_ecg = P.findChannel(channel_name);
+            catch ME
+                P.addProblem(ME);
+            end
+            P.ecg = ELF.Physio.denoiseEcg(raw_ecg);
+        end
+        
+        function respFromMw(P,channel_name)
+        %respFromMw Set resp from raw_data_tt and denoise
+        % respFromMw %Finds first channel name containing 'RESP'
+        % respFromMw(channel_name) %Finds specified channel name
+        %See also: rawFromMwFile
+
+            if nargin<2; channel_name=P.channel_names.resp; end
+            try 
+                raw_resp = P.findChannel(channel_name);
+            catch
+                P.addProblem(ME);
+            end
+            P.resp = ELF.Physio.denoiseResp(raw_resp);
+        end
+        
+        function gscFromMw(Physio,channel_name)
+        %gscFromMw Set GSC from raw_data_tt and denoise
+        % gscFromMw %Finds first channel name containing 'GSC'
+        % gscFromMw(channel_name) %Finds specified channel name
+        %See also: rawFromMwFile
+        
+            if nargin<2; channel_name=Physio.channel_names.gsc; end
+            try 
+                raw_gsc = Physio.findChannel(channel_name);
+            catch ME
+                Physio.addProblem(ME);
+            end
+            Physio.gsc = ELF.Physio.denoiseGsc(raw_gsc);
+        end
+        
+        function emgFromMw(Physio,channel_name)
+        %emgFromMw Set EMG from raw_data_tt and denoise
+        % emgFromMw %Finds first channel name containing 'EMG'
+        % emgFromMw(channel_name) %Finds specified channel name
+        %See also: rawFromMwFile
+        
+        if nargin<2; channel_name=Physio.channel_names.emg; end
+            try 
+                raw_emg = Physio.findChannel(channel_name);
+            catch ME
+                Physio.addProblem(ME);
+            end
+            Physio.emg = ELF.Physio.denoiseGsc(raw_emg);
+        end
+        
+        function ibisFromEcg(Physio)
+        %ibisFromEcg Use ECG to find R peaks and calculate IBI series
+        %See also: fixBeats, ibisFromFile
+            
+            if ~Physio.has_ecg
+                Physio.addProblem(MException('Physio:EcgNotFound', ...
+                    'Tried to calc IBIs from ECG, but had no ECG signal!'));
+                return;
+            end
+                
+            try
+                [Physio.ibis,Physio.BioSigKit_Analysis] = ... %get beats
+                    ELF.Physio.ecg2ibi(Physio.ecg,Physio.Fs);
+            catch ME
+                Physio.addProblem(ME);
+            end
+        end
+        
+        function ibis = ibisFromFile(Physio,ibi_path)
+        %ibisFromFile Read IBI series from file
+        % TODO
+        %See also: ibisFromEcg, ibisFromMwEdit, fixBeats
+        
+        end
+        
+        function ibis = ibisFromMwEdit(Physio,edh_path)
+        %ibisFromEdh Read hand-cleaned ibis from .edh (Mw edit file)
+        % TODO
+        %See also: ibisFromEcg, ibisFromFile, fixBeats
+        end
+        
+        function hrvFromMwRealtimeTxt(Physio,mwrt_path)
+        %hrvFromMwRealtimeTxt: populate HRV table from pre-analyzed RT write
+        %
+        %See also: readMwRealtime
+            if nargin<2; mwrt_path = Physio.path; end
+            Physio.hrv_tt = ELF.Physio.readMwRealtime(mwrt_path);
+        end
+        
+        function hrvFromIbis(Physio,settings)
+        %hrvFromIbis Use IBI series to calculate HRV
+        % hrvFromIbis %Use default HRV settings
+        % hrvFromIbis %Use custom settings
+        %See also: calcHrv, hrvGui, defaultHRVASSettings
+            if nargin<2; settings=ELF.Physio.defaultHRVASSettings; end 
+            try
+                [Physio.hrv_tt,Physio.HRVAS_Analysis] = ...
+                    ELF.Physio.calcHrv(Physio.ibis,settings);
+            catch ME
+                Physio.addProblem(ME);
+            end
+        end
+        
+        function respFromIbis(Physio,ibis)
+        %respFromIbis Calculate ECG-derived respiration
+        % TODO
+        %See also: ibi2resp
+            if nargin<2; ibis=Physio.ibis; end
+            try
+                Physio.resp = ELF.Physio.ibi2resp(ibis);
+            catch ME
+                Physio.addProblem(ME);
+            end
+        end
+        
+        function exportIbis(Physio,ibi_savepath)
+        %exportIbis Export IBI series to file
+        % exportIbis % Prompts for savepath
+        % exportIbis(savepath) % Writes to specified file
+        %  (File extension determines save type: .csv, .xlsx, &c.
+        % TODO: format options (ms or s, w or w/o beats, horizontal, &c.)
+        %See also: ELF.Physio.writeIbis, writetable
+        
+            if nargin<2; [~,ibi_savepath] = uiputfile(); end
+            ELF.Physio.writeIbis(Physio.ibis,ibi_savepath);
+        end
+        
+        function exportHrv(Physio,hrv_savepath)
+        %exportHrv Export HRV table to file
+        % exportHrv % Prompts for savepath
+        % exportHrv(savepath) % Writes to specified file
+        %  (File extension determines save type: .csv, .xlsx, &c.)
+        
+            if nargin<2; [~,hrv_savepath] = uiputfile(); end
+            ELF.Physio.writeHrv(Physio.hrv_t,hrv_savepath);
+        end
+        
+        %fixBeats.m: clean up ibi by hand-correcting
+        fixBeats(Physio)
+        
+        %HRVAS wrapper
+        hrvGui(Physio)
+        
+    end
+    
+    methods
+    %% GETTERS AND SETTERS
+
+        % SETTERS: do bounds-checking when values are assigned
+                
+        % GETTERS: calculate dependent properties on the fly
+        
+        function ecg_tt = get.ecg_tt(P)
+            ecg_tt = timetable(P.ecg,'SamplingRate',P.Fs, ...
+                'VariableNames',{'ECG'});
+        end
+        
+        %get ibis as array
+        function ibis_a = get.ibis_a(P); ibis_a = [cumsum(P.ibis),P.ibis]; end
+        
+        %get ibis as timetable
+        function ibis_tt = get.ibis_tt(P)
+            ibis_tt = timetable(seconds(cumsum(P.ibis)),seconds(P.ibis), ...
+                'VariableNames',{'IBI'});
+        end
+        
+        %get beat indices
+        function beat_idx = get.beat_idx(P)
+            beat_idx = zeros(length(P.ecg),1);
+            
+            beats = round((cumsum(P.ibis)*P.Fs));
+            beat_idx(beats,:) = 1;
+            beat_idx(length(P.ecg)+1:end) = [];
+        end
+        
+        %get power spectrum density (wavelet)
+        function psd = get.psd(P); psd = P.HRVAS_Analysis.tf.wav.psd; end
+        
+        %get clean ecg timetable with IBI beats as bools (for plots)
+        function ecg_with_beats_tt = get.ecg_with_beats_tt(P)
+            ECG = P.ecg;
+            Beats = P.beat_idx;
+            ecg_with_beats_tt = timetable(P.Time,ECG,Beats);
+        end
+        
+        function hrv_t = get.hrv_t(Physio);
+            %hrv as simple table
+            hrv_t = timetable2table(P.hrv_tt);
+        end
+        
+        function hrv_vars = get.hrv_vars(P)
+        %hrv_vars: List vars available for HRV window functions
+            hrv_vars = P.hrv_tt.Properties.VariableNames;
+        end
+        
+        function hrv_wins(Physio,wins_t,vars)
+        %hrv_wins: window estimates for multiple windows
+           % if 
+        end
+        
+        %channel name struct interfaces
+        function ecg_channel = get.ecg_channel(Physio); ...
+            ecg_channel = Physio.channel_names.ecg; end
+        function set.ecg_channel(Physio,name); ...
+            Physio.channel_names.ecg = name; end
+        function resp_channel = get.resp_channel(Physio); ...
+            resp_channel = Physio.channel_names.resp; end
+        function set.resp_channel(Physio,name); ...
+            Physio.channel_names.resp = name; end
+        function gsc_channel = get.gsc_channel(Physio); ...
+        	gsc_channel = Physio.channel_names.gsc; end
+        function set.gsc_channel(Physio,name); ...
+            Physio.channel_names.gsc = name; end
+        function emg_channel = get.emg_channel(Physio); ...
+            emg_channel = Physio.channel_names.emg; end
+        function set.emg_channel(Physio,name); ...
+            Physio.channel_names.emg = name; end
+        
+        function channel_names_t = get.channel_names_t(Physio); ...
+            channel_names_t = struct2table(Physio.channel_names); end
+        
+        
+        
+        function has_raw = get.has_raw(Physio); ...
+                has_raw = ~isempty(Physio.raw_data_tt); end
+        
+        function has_ecg = get.has_ecg(Physio); ...
+                has_ecg = ~isempty(Physio.ecg); end
+        function has_gsc = get.has_gsc(Physio); ...
+                has_gsc = ~isempty(Physio.gsc); end
+        function has_resp = get.has_resp(Physio); ...
+                has_resp = ~isempty(Physio.resp); end
+        function has_emg = get.has_emg(Physio); ...
+                has_emg = ~isempty(Physio.resp); end
+        
+        function hand_cleaned = get.hand_cleaned(Physio); ...
+            hand_cleaned = ~isempty(Physio.cleaner); end
+        function has_ibis = get.has_ibis(Physio); ...
+            has_ibis = ~isempty(Physio.ibis); end 
+        
+        function has_hrv = get.has_hrv(Physio); ...
+            has_hrv = ~isempty(Physio.hrv_tt); end
+        
+        function Time = get.Time(Physio)
+        %Time Calculate appropriate duration vector for timetables
+            if Physio.has_raw; Time=Physio.raw_data_tt.Time; return; end
+            if Physio.has_ecg
+                Time=seconds(1:length(Physio.ecg))./Physio.Fs; return;
+            end
+            Time = seconds(1:cumsum(Physio.ibis)*Physio.Fs)./Physio.Fs;
+        end
+        
+%         function ibis = asdf(P)
+%             rpeaks = find(P.ecg_with_beats_tt.Beats)';
+%             rr = [rpeaks rpeaks(end)]-[0 rpeaks]; %get inter-beat intervals
+%             rr = rr(1:end-1)'; %trim missing vals from beginning/end
+% 
+%             ibis = rr./P.Fs; %output in seconds
+%         end
+    end
+    
+    %% STATIC METHODS
+    methods (Static)
+        % These methods can be called from outside:
+        % ELF.Physio.function(args) does not require a new object be made
+        % This is so you can use them for debugging or as general-purpose
+        
+        % readMw.m: read a .Mw file containing physio recordings
+        [raw_data_tt, Fs] = readMw(sourcepath,mins)
+        
+        % denoiseEcg.m: get de-noised ECG
+        ecg_clean = denoiseEcg(ecg_raw, Fs)
+        
+        % denoiseResp.m: get de-noised respiration
+        resp_clean = denoiseResp(resp_raw, Fs)
+        
+        % denoisegsc.m: get de-noised gsc
+        gsc_clean = denoisegsc(resp_raw, Fs)
+        
+        % denoiseEmg.m: get de-noised EMG
+        emg_clean = denoiseEmg(resp_raw, Fs)
+        
+        % ecg2ibis.m: find beats, get ibi series in standard format
+        [ibis,BioSigKit_Analysis] = ecg2ibi(ecg_clean, Fs)
+        
+        % calcHrv.m: get heartrate variability data from ibi series
+        [hrv_tt,HRVAS_Analysis,dibis] = calcHrv(ibis,settings)
+        
+        % read realtime physio stats generated by mindware
+        hrv_tt = readMwRealtime(path)
+        
+        % ibiTTtoArray: get ibi timetable to standard .ibi format
+        function ibi_array = ibiTTtoArray(ibi_tt)
+                ibi_tt.Time.Format = 's';
+                ibi_tt.IBI.Format = 's';
+                ibi_array = [seconds(ibi_tt.Time), ...
+                seconds(ibi_tt.IBI)];
+        end
+        
+        %ibis2resp.m: get ecg-derived respiration from ibi series
+        resp = ibis2resp(ibis);
+        
+        %writeIBI.m: write .ibi file in standard text format
+        writeIbis(ibis,savepath)
+        
+        function writeHrv(hrv_t,hrv_savepath)
+            writetable(hrv_t,hrv_savepath);
+        end
+        
+        %defaultHRVASSettings.m: return Greg's HRVAS settings
+        hrvas_settings = defaultHRVASSettings() %From Greg
+        
+    end
+    
+end
+
+
+
+%% GLOSSARY
+% SDNN	ms	Standard deviation of NN intervals
+% SDRR	ms	Standard deviation of RR intervals
+% SDANN	ms	Standard deviation of the average NN intervals for each 5?min segment of a 24?h HRV recording
+% SDNN index (SDNNI)	ms	Mean of the standard deviations of all the NN intervals for each 5?min segment of a 24?h HRV recording
+% pNN50	%	Percentage of successive RR intervals that differ by more than 50?ms
+% HR Max???HR Min	bpm	Average difference between the highest and lowest heart rates during each respiratory cycle
+% RMSSD	ms	Root mean square of successive RR interval differences
+% HRV triangular index		Integral of the density of the RR interval histogram divided by its height
+% TINN	ms	Baseline width of the RR interval histogram
+% 
+% ULF power	ms2	Absolute power of the ultra-low-frequency band (?0.003?Hz)
+% VLF power	ms2	Absolute power of the very-low-frequency band (0.0033?0.04?Hz)
+% LF peak	Hz	Peak frequency of the low-frequency band (0.04?0.15?Hz)
+% LF power	ms2	Absolute power of the low-frequency band (0.04?0.15?Hz)
+% LF power	nu	Relative power of the low-frequency band (0.04?0.15?Hz) in normal units
+% LF power	%	Relative power of the low-frequency band (0.04?0.15?Hz)
+% HF peak	Hz	Peak frequency of the high-frequency band (0.15?0.4?Hz)
+% HF power	ms2	Absolute power of the high-frequency band (0.15?0.4?Hz)
+% HF power	nu	Relative power of the high-frequency band (0.15?0.4?Hz) in normal units
+% HF power	%	Relative power of the high-frequency band (0.15?0.4?Hz)
+% LF/HF	%	Ratio of LF-to-HF power
+
+% RSA = ln(HFPower)
+% S	ms	Area of the ellipse which represents total HRV
+% SD1	ms	Poincar? plot standard deviation perpendicular the line of identity
+% SD2	ms	Poincar? plot standard deviation along the line of identity
+% SD1/SD2	%	Ratio of SD1-to-SD2
+% ApEn		Approximate entropy, which measures the regularity and complexity of a time series
+% SampEn		Sample entropy, which measures the regularity and complexity of a time series
+% DFA ?1		Detrended fluctuation analysis, which describes short-term fluctuations
+% DFA ?2		Detrended fluctuation analysis, which describes long-term fluctuations
+% D2		Correlation dimension, which estimates the minimum number of variables required to construct a model of system dynamics
+
+
+##### SOURCE END #####
+--></body></html>

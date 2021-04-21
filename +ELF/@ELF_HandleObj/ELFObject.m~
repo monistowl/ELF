@@ -1,0 +1,133 @@
+% 
+% 
+% 
+% ELFObject inherits handle, and is inherited by all other ELF classes.
+% 
+% All classes inheriting get these methods for free:
+%   save, open, saveas
+%
+% OBJECT SAVE AND LOAD
+%
+% "Normal" MATLAB save and load are unmodified, to allow scripting within
+% existing paradigms. However, this can cause unintuitive behavior:
+%   
+%   x = false; save file1 x;
+%   x = true; save file2 x;
+%   load file1; load file2; overwrites x from file1
+%   x % true
+%
+%   clear x;
+%   x1 = false;
+%   x2 = load(file2); % loads all vars in file2 into x struct
+%   x1 %false
+%   x2.x %true
+% 
+% For more familiar GUI-style open/save/saveas behavior, ELF objects all keep
+% track of their savepath, and define methods to save one object per file:
+%
+% Obj = ELF.ELFObject.open(matpath) % Obj is set to saved DataSource (not cell) 
+%                                % Obj.savepath is set to matpath, in case
+%                                %  file has been moved/copied.
+%                                % (also works as ELF.PhysioData.open, &c.)
+%
+% Obj.open(matpath) % Calls ELF.ELFObject.open(matpath), checks class, overwrites
+%                   % existing object if it matches.
+%   
+% Obj.save % save Obj to Obj.savepath; if Obj.savepath is not set, prompt
+% Obj.save(savepath) % Save Obj to savepath, setting Obj.savepath to savepath
+%
+% Obj.saveas % Force prompt for new Obj.savepath
+% Obj.saveas(savepath) % Same as Obj.save(savepath) 
+
+classdef ELFObject < handle
+    %ELFObject Superclass for Extensible Lab Framework objects
+    %   Other data source types inherit this class, and implement their own
+    %   preproc methods (so that arrays of empty objects can be assigned to
+    %   Tasks, and then preproc'd en masse).
+    
+    properties
+        sourcepath='';
+        savepath='';
+        problems=[];
+    end
+    
+    methods
+        function ELFObject = ELFObject(preprocfunc)
+            %ELFObject Construct an instance of this class
+            if (nargin == 0)
+                return;
+            end
+            %   By default, load and process the data immediately
+            if (nargin < 2)
+                preproc_now = true;
+            end
+            ELFObject.sourcepath = sourcepath;
+            
+            if(preproc_now)
+                ELFObject.preproc;
+            end
+        end
+        
+        function preproc(ELFObject)
+            %METHOD1 Summary of this method goes here
+            %   Detailed explanation goes here
+            disp('No preproc method defined!\n');
+        end
+        
+        function preprocAndSave(ELFObject,savepath)
+            if nargin<2
+                savepath = ELFObject.savepath;
+            end
+            ELFObject.preproc;
+            save(savepath,ELFObject);
+        end
+        
+        function set.sourcepath(ELFObject,sourcepath)
+            ELFObject.sourcepath=getFullPath(sourcepath);
+            ELFObject.clearProblems(); %new file, assume new data
+            if ~exist(ELFObject.path,'file'); ...
+                ELFObject.addProblem('File not found! Check path.'); end
+        end
+        
+        function set.savepath(P,savepath)
+            P.savepath = getFullPath(savepath); %save full path, not relative
+        end
+        
+        
+        
+        function save(ELF__SavedObject,savepath)
+            if nargin>1; ELF__SavedObject.savepath=savepath; end %if none specified, use prev
+            if isempty(ELF__SavedObject.savepath)
+                [file,path]=uiputfile('*.mat','Saving PhysioData...');
+                ELF__SavedObject.savepath=getFullPath(fullfile(path,file));
+            end
+            save(ELF__SavedObject.savepath,'ELF__SavedData');
+        end
+        
+        function ELFObject = load(path)
+            
+        end
+                
+        function saveas(ELFObject,savepath)
+            if nargin>2; savepath=''; end
+            
+        end
+    
+    end
+    
+    methods (Static)
+        
+        function ELFObject = open(matpath)
+% Obj = ELF.ELFObject.open(matpath)
+%   % Obj is set to saved DataSource (not stuct) 
+%   % Obj.savepath is set to matpath, in case
+%   %  file has been moved/copied.
+%   % (also works as ELF.PhysioData.open, &c.)
+            struct = load(getFullPath(matpath));
+            ELFObject = struct.ELF__SavedObject;
+            ELFObject.savepath = matpath;
+        end
+
+    end
+end
+

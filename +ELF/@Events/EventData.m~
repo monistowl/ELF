@@ -1,0 +1,115 @@
+classdef EventData < ELF.ELFObject
+    %EVENTDATA Data from eprime event.txt log
+    %   Stores data from an event file, with functions for retrieval and
+    %   windowing. Timestamps are normalized to seconds since acquisition
+    %   start.
+    
+    properties
+%         path
+%         preprocpath
+        events_tt
+    end
+    
+    properties (Dependent)
+        event_names
+    end
+    
+    methods
+        function E = EventData(spath,preproc_now)
+            %EVENTDATA Read data from file path
+            %   Detailed explanation goes here
+            if nargin>0; P.sourcepath=sourcepath; end
+            if nargin>1; P.preproc_now=preproc_now; end
+        end
+        
+        function preproc(E)
+            E.events_tt = ELF.EventData.readEprimeEvents(E.path);
+        end
+        
+        function m = preproc_and_save(E,savepath)
+            if nargin<2
+                savepath = E.preprocpath;
+            end
+            E.preproc;
+            save(savepath,E);
+            m = matfile(savepath);
+        end
+        
+        function subtable = findEvents(E,criteria,exactnames)
+            if nargin<3; exactnames=false; end %assume regex search
+            
+            if isinteger(criteria)
+                subtable=E.eventsNumbered(criteria); return;
+            end
+            
+            if isstring(criteria) || ischar(criteria) || iscellstr(criteria)
+               subtable=E.eventsNamedLike(criteria)
+            end
+            
+            
+        end
+        
+        function subtable = eventsBetween(E,winstart,winend)
+
+        end
+        
+        %timestamps of events matching event name
+        function subtable = eventsNamed(E, name)
+            subtable = E.events_tt(E.events_tt.EventName == name,:);
+        end
+        
+        function subtable = eventsNumbered(E, number)
+        %timestamps of events matching event number
+
+            subtable = E.events_tt(E.events_tt.EventType == number,:);
+        end
+        
+        function subtable = eventsNamedLike(E, exp)
+                    %timestamps of events matching regular expression, case insensitive
+
+            matches = ~cellfun(@isempty,regexpi(E.event_names,exp));
+            subtable = E.events_tt(matches,:);
+        end
+        
+        %these functions get windows
+        
+        function wins = windowsBetweenEventsNamedLike(E, n1, n2)
+            wins = [];
+            win_starts = E.eventsNamedLike(n1).Time;
+            win_ends = E.eventsNamedLike(n2).Time;
+            wins = [win_starts, win_ends];
+        end
+        
+        function wins = windowsUntilNextEventAfterEventsNamedLike(name)
+            
+        end
+        
+        function wins = windowsAfterEventsNamed(event_name,seconds)
+            
+        end
+        
+        function wins = windowsBeforeEventsName(event_name)
+            
+        end
+        
+        function wins = windowsAroundEventsName(event_name)
+            
+        end
+        
+        function wins = windowsBetweenEventNames(event_name)
+            
+        end
+ 
+    end
+    
+    methods
+        function event_names = get.event_names(E)
+            event_names = string(E.events_tt.EventName);
+        end
+    end
+    
+    methods (Static)
+        events_tt = readEprimeEvents(path)
+    end
+end
+
